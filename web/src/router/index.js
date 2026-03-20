@@ -208,6 +208,16 @@ const routes = [
         }
       },
       {
+        path: 'clusters',
+        name: 'AdminClusters',
+        component: () => import('@/view/admin/clusters/index.vue'),
+        meta: {
+          title: '集群管理',
+          requiresAuth: true,
+          roles: ['admin']
+        }
+      },
+      {
         path: 'tasks',
         name: 'AdminTasks',
         component: () => import('@/view/admin/tasks/index.vue'),
