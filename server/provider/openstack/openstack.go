@@ -304,18 +304,110 @@ func (o *OpenStack) GetInstance(ctx context.Context, id string) (*provider.Insta
 	return nil, fmt.Errorf("GetInstance not implemented yet")
 }
 
-// ListImages 列出可用镜像
+// ListImages 列出可用镜像 (使用 Glance API v2)
 func (o *OpenStack) ListImages(ctx context.Context) ([]provider.Image, error) {
 	if !o.connected {
 		return nil, fmt.Errorf("not connected to OpenStack")
 	}
 
-	// 使用 Glance API 获取镜像列表
-	images := []provider.Image{}
+	if o.token == "" {
+		return nil, fmt.Errorf("not authenticated to OpenStack")
+	}
+
+	// 使用 Glance API v2 获取镜像列表
+	glanceURL := fmt.Sprintf("https://%s:9292/v2/images", o.config.Host)
 	
-	// TODO: 实现 API 调用
+	client := utils.GetInsecureHTTPClient(30 * time.Second)
+	req, err := http.NewRequestWithContext(ctx, "GET", glanceURL, nil)
+	if err != nil {
+		return nil, fmt.Errorf("failed to create request: %w", err)
+	}
+	
+	req.Header.Set("X-Auth-Token", o.token)
+	req.Header.Set("Content-Type", "application/json")
+	
+	resp, err := client.Do(req)
+	if err != nil {
+		return nil, fmt.Errorf("failed to list images: %w", err)
+	}
+	defer resp.Body.Close()
+	
+	if resp.StatusCode != http.StatusOK {
+		return nil, fmt.Errorf("failed to list images, status: %d", resp.StatusCode)
+	}
+	
+	// 解析 JSON 响应
+	var result struct {
+		Images []struct {
+			ID          string `json:"id"`
+			Name        string `json:"name"`
+			Status      string `json:"status"`
+			DiskFormat  string `json:"disk_format"`
+			ContainerFormat string `json:"container_format"`
+			Size        int64  `json:"size"`
+			CreatedAt   string `json:"created_at"`
+			UpdatedAt   string `json:"updated_at"`
+			MinDisk     int    `json:"min_disk"`
+			MinRAM      int    `json:"min_ram"`
+			Tags        []string `json:"tags"`
+		} `json:"images"`
+	}
+	
+	if err := json.NewDecoder(resp.Body).Decode(&result); err != nil {
+		return nil, fmt.Errorf("failed to decode response: %w", err)
+	}
+	
+	images := make([]provider.Image, 0, len(result.Images))
+	for _, img := range result.Images {
+		// 只返回可用的镜像
+		if img.Status != "active" {
+			continue
+		}
+		
+		image := provider.Image{
+			ID:          img.ID,
+			Name:        img.Name,
+			Tag:         img.DiskFormat,
+			Description: fmt.Sprintf("Format: %s, Container: %s", img.DiskFormat, img.ContainerFormat),
+		}
+		
+		// 转换大小为人类可读格式
+		if img.Size > 0 {
+			image.Size = formatSize(img.Size)
+		}
+		
+		// 解析创建时间
+		if created, err := time.Parse("2006-01-02T15:04:05Z", img.CreatedAt); err == nil {
+			image.Created = created
+		}
+		
+		images = append(images, image)
+	}
 	
 	return images, nil
+}
+
+// formatSize 将字节转换为人类可读格式
+func formatSize(bytes int64) string {
+	const (
+		KB = 1024
+		MB = KB * 1024
+		GB = MB * 1024
+		TB = GB * 1024
+	)
+	
+	switch {
+	case bytes >= TB:
+		return fmt.Sprintf("%.2f TB", float64(bytes)/TB)
+	case bytes >= GB:
+		return fmt.Sprintf("%.2f GB", float64(bytes)/GB)
+	case bytes >= MB:
+		return fmt.Sprintf("%.2f MB", float64(bytes)/MB)
+	case bytes >= KB:
+		return fmt.Sprintf("%.2f KB", float64(bytes)/KB)
+	default:
+		return fmt.Sprintf("%d B", bytes)
+	}
 }
 
 // PullImage 拉取镜像
