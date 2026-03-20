@@ -49,6 +49,14 @@
           label="Proxmox"
           value="proxmox"
         />
+        <el-option
+          label="OpenStack"
+          value="openstack"
+        />
+        <el-option
+          label="Kubernetes"
+          value="k8s"
+        />
       </el-select>
     </el-form-item>
     <el-form-item
