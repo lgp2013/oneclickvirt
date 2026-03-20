@@ -4,6 +4,9 @@ FROM node:22-slim AS frontend-builder
 ARG TARGETARCH
 WORKDIR /app/web
 
+# Set npm to use Chinese mirror
+RUN npm config set registry https://registry.npmmirror.com
+
 # Copy package files first
 COPY web/package.json ./
 COPY web/package-lock.json ./
@@ -30,6 +33,10 @@ RUN npm run build
 FROM golang:1.24-alpine AS backend-builder
 ARG TARGETARCH
 WORKDIR /app/server
+
+# Set Go module proxy to Chinese mirror
+ENV GOPROXY=https://goproxy.cn,direct
+
 RUN apk add --no-cache git ca-certificates
 COPY server/ ./
 RUN go mod download
@@ -37,6 +44,10 @@ RUN CGO_ENABLED=0 GOOS=linux GOARCH=${TARGETARCH} go build -a -installsuffix cgo
 
 FROM debian:12-slim
 ARG TARGETARCH
+
+# Set pip to use Chinese mirror
+RUN pip config set global.index-url https://mirrors.aliyun.com/pypi/simple/ && \
+    pip config set global.trusted-host mirrors.aliyun.com
 
 # Install database and other services based on architecture
 RUN apt-get update && \
