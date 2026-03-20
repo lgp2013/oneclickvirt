@@ -14,51 +14,57 @@
       </template>
 
       <!-- 搜索过滤 -->
-      <el-row :gutter="20" style="margin-bottom: 20px;">
-        <el-col :span="6">
-          <el-input
-            v-model="searchForm.name"
-            :placeholder="$t('admin.clusters.searchName')"
-            clearable
-            @clear="handleSearch"
-          >
-            <template #prefix>
+      <div class="search-filter">
+        <el-row :gutter="20">
+          <el-col :span="6">
+            <el-input
+              v-model="searchForm.name"
+              :placeholder="$t('admin.clusters.searchName')"
+              clearable
+              @keyup.enter="handleSearch"
+              @clear="handleSearch"
+            >
+              <template #prefix>
+                <el-icon><Search /></el-icon>
+              </template>
+            </el-input>
+          </el-col>
+          <el-col :span="4">
+            <el-select
+              v-model="searchForm.type"
+              :placeholder="$t('admin.clusters.searchType')"
+              clearable
+              @change="handleSearch"
+              @clear="handleSearch"
+            >
+              <el-option
+                label="OpenStack"
+                value="openstack"
+              />
+              <el-option
+                label="Kubernetes"
+                value="k8s"
+              />
+            </el-select>
+          </el-col>
+          <el-col :span="4">
+            <el-button type="primary" @click="handleSearch">
               <el-icon><Search /></el-icon>
-            </template>
-          </el-input>
-        </el-col>
-        <el-col :span="4">
-          <el-select
-            v-model="searchForm.type"
-            :placeholder="$t('admin.clusters.searchType')"
-            clearable
-            @clear="handleSearch"
-          >
-            <el-option
-              label="OpenStack"
-              value="openstack"
-            />
-            <el-option
-              label="Kubernetes"
-              value="k8s"
-            />
-          </el-select>
-        </el-col>
-        <el-col :span="4">
-          <el-button type="primary" @click="handleSearch">
-            {{ $t('common.search') }}
-          </el-button>
-          <el-button @click="handleReset">
-            {{ $t('common.reset') }}
-          </el-button>
-        </el-col>
-      </el-row>
+              {{ $t('common.search') }}
+            </el-button>
+            <el-button @click="handleReset">
+              <el-icon><Refresh /></el-icon>
+              {{ $t('common.reset') }}
+            </el-button>
+          </el-col>
+        </el-row>
+      </div>
 
       <!-- 集群列表表格 -->
       <el-table
         v-loading="loading"
         :data="clusters"
-        style="width: 100%"
+        style="width: 100%; margin-top: 20px;"
         @selection-change="handleSelectionChange"
       >
         <el-table-column type="selection" width="55" />
@@ -66,16 +72,18 @@
         <el-table-column
           :label="$t('admin.clusters.name')"
           prop="name"
-          width="120"
+          min-width="120"
+          show-overflow-tooltip
         />
         
         <el-table-column
           :label="$t('admin.clusters.type')"
           prop="type"
-          width="120"
+          width="130"
+          align="center"
         >
           <template #default="{ row }">
-            <el-tag :type="getTypeTagType(row.type)">
+            <el-tag :type="getTypeTagType(row.type)" effect="light">
               {{ getTypeName(row.type) }}
             </el-tag>
           </template>
@@ -85,15 +93,17 @@
           :label="$t('admin.clusters.endpoint')"
           prop="endpoint"
           min-width="180"
+          show-overflow-tooltip
         />
 
         <el-table-column
           :label="$t('admin.clusters.status')"
           prop="status"
           width="100"
+          align="center"
         >
           <template #default="{ row }">
-            <el-tag :type="row.status === 'active' ? 'success' : 'danger'">
+            <el-tag :type="row.status === 'active' ? 'success' : 'info'" effect="light">
               {{ row.status === 'active' ? $t('common.enabled') : $t('common.disabled') }}
             </el-tag>
           </template>
@@ -103,6 +113,7 @@
           :label="$t('admin.clusters.region')"
           prop="region"
           width="120"
+          align="center"
         />
 
         <el-table-column
@@ -121,7 +132,8 @@
         <el-table-column
           :label="$t('common.createTime')"
           prop="createdAt"
-          width="180"
+          width="170"
+          align="center"
         >
           <template #default="{ row }">
             {{ formatDate(row.createdAt) }}
@@ -132,28 +144,34 @@
           :label="$t('common.actions')"
           width="200"
           fixed="right"
+          align="center"
         >
           <template #default="{ row }">
             <el-button
               type="primary"
               size="small"
+              link
               @click="handleEdit(row)"
             >
+              <el-icon><Edit /></el-icon>
               {{ $t('common.edit') }}
             </el-button>
             <el-button
               type="success"
               size="small"
+              link
               @click="handleConnect(row)"
             >
+              <el-icon><Connection /></el-icon>
               {{ $t('admin.clusters.connect') }}
             </el-button>
             <el-button
               type="danger"
               size="small"
+              link
               @click="handleDelete(row)"
             >
-              {{ $t('common.delete') }}
+              <el-icon><Delete /></el-icon>
             </el-button>
           </template>
         </el-table-column>
@@ -167,6 +185,7 @@
           :page-sizes="[10, 20, 50, 100]"
           :total="total"
           layout="total, sizes, prev, pager, next, jumper"
+          background
           @size-change="handleSizeChange"
           @current-change="handleCurrentChange"
         />
@@ -187,7 +206,7 @@
 
 <script setup>
 import { ref, reactive, onMounted } from 'vue'
-import { Search } from '@element-plus/icons-vue'
+import { Search, Refresh, Edit, Delete, Connection } from '@element-plus/icons-vue'
 import { useI18n } from 'vue-i18n'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import ClusterFormDialog from './components/ClusterFormDialog.vue'
@@ -239,8 +258,8 @@ const loadClusters = async () => {
       ...searchForm
     }
     const res = await getClusterList(params)
-    clusters.value = res.data.list || []
-    total.value = res.data.total || 0
+    clusters.value = res.data?.list || []
+    total.value = res.data?.total || 0
   } catch (error) {
     ElMessage.error(error.message || t('common.loadFailed'))
   } finally {
@@ -319,7 +338,7 @@ const handleDelete = async (row) => {
 const handleConnect = async (row) => {
   try {
     const res = await testConnection({ id: row.id })
-    if (res.data.success) {
+    if (res.data?.success) {
       ElMessage.success(t('admin.clusters.connectSuccess'))
     } else {
       ElMessage.warning(t('admin.clusters.connectFailed'))
@@ -336,14 +355,14 @@ const handleViewInstances = (row) => {
 }
 
 // 提交表单
-const handleSubmit = async () => {
+const handleSubmit = async (formData) => {
   formLoading.value = true
   try {
     if (isEditing.value) {
-      await updateCluster(clusterForm)
+      await updateCluster(formData)
       ElMessage.success(t('common.updateSuccess'))
     } else {
-      await createCluster(clusterForm)
+      await createCluster(formData)
       ElMessage.success(t('common.createSuccess'))
     }
     showDialog.value = false
@@ -419,9 +438,21 @@ onMounted(() => {
   align-items: center;
 }
 
+.search-filter {
+  margin-top: 10px;
+}
+
 .pagination-container {
   margin-top: 20px;
   display: flex;
   justify-content: flex-end;
+}
+
+:deep(.el-table) {
+  font-size: 14px;
+}
+
+:deep(.el-button + .el-button) {
+  margin-left: 8px;
 }
 </style>
