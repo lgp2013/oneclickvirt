@@ -13,7 +13,9 @@ import (
 	_ "oneclickvirt/provider/containerd"
 	_ "oneclickvirt/provider/docker"
 	_ "oneclickvirt/provider/incus"
+	_ "oneclickvirt/provider/k8s"
 	_ "oneclickvirt/provider/lxd"
+	_ "oneclickvirt/provider/openstack"
 	_ "oneclickvirt/provider/podman"
 	_ "oneclickvirt/provider/proxmox"
 
