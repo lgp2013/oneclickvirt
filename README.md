@@ -28,6 +28,8 @@ An extensible universal virtualization management platform that supports LXD, In
 | `proxmox` | Proxmox VE | container, vm | [oneclickvirt/pve](https://github.com/oneclickvirt/pve) |
 | `qemu` | QEMU | vm | [oneclickvirt/qemu](https://github.com/oneclickvirt/qemu) |
 | `kubevirt` | KubeVirt | vm | [oneclickvirt/kubevirt](https://github.com/oneclickvirt/kubevirt) |
+| `openstack` | OpenStack | container, vm | - |
+| `k8s` | Kubernetes | container, vm | - |
 
 ## Quick Deployment
 
