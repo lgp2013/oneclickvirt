@@ -218,6 +218,26 @@ const routes = [
         }
       },
       {
+        path: 'audit-logs',
+        name: 'AdminAuditLogs',
+        component: () => import('@/view/admin/audit-logs/index.vue'),
+        meta: {
+          title: '审计日志',
+          requiresAuth: true,
+          roles: ['admin']
+        }
+      },
+      {
+        path: 'alerts',
+        name: 'AdminAlerts',
+        component: () => import('@/view/admin/alerts/index.vue'),
+        meta: {
+          title: '告警管理',
+          requiresAuth: true,
+          roles: ['admin']
+        }
+      },
+      {
         path: 'tasks',
         name: 'AdminTasks',
         component: () => import('@/view/admin/tasks/index.vue'),

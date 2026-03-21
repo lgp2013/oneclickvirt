@@ -1,0 +1,16 @@
+export default {
+  title: 'Audit Logs',
+  searchUsername: 'Search username',
+  searchMethod: 'Search method',
+  time: 'Time',
+  username: 'Username',
+  method: 'Method',
+  path: 'Path',
+  statusCode: 'Status Code',
+  latency: 'Latency',
+  clientIP: 'Client IP',
+  userAgent: 'User Agent',
+  request: 'Request',
+  response: 'Response',
+  detail: 'Log Detail',
+}

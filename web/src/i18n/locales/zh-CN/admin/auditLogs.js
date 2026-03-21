@@ -1,0 +1,16 @@
+export default {
+  title: '审计日志',
+  searchUsername: '搜索用户名',
+  searchMethod: '搜索请求方法',
+  time: '时间',
+  username: '用户名',
+  method: '请求方法',
+  path: '请求路径',
+  statusCode: '状态码',
+  latency: '响应时间',
+  clientIP: '客户端IP',
+  userAgent: '用户代理',
+  request: '请求内容',
+  response: '响应内容',
+  detail: '日志详情',
+}

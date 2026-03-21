@@ -2,6 +2,8 @@ package router
 
 import (
 	"oneclickvirt/api/v1/admin"
+	"oneclickvirt/api/v1/admin/alert"
+	"oneclickvirt/api/v1/admin/cluster"
 	"oneclickvirt/api/v1/config"
 	"oneclickvirt/api/v1/system"
 	"oneclickvirt/api/v1/traffic"
@@ -123,6 +125,14 @@ func InitAdminRouter(Router *gin.RouterGroup) {
 		AdminGroup.GET("/configuration-tasks/:id", config.GetConfigurationTaskDetail)
 		AdminGroup.POST("/configuration-tasks/:id/cancel", config.CancelConfigurationTask)
 
+		// 集群管理 (OpenStack/K8s)
+		AdminGroup.GET("/clusters", cluster.GetClusterList)
+		AdminGroup.POST("/clusters", cluster.CreateCluster)
+		AdminGroup.GET("/clusters/:id", cluster.GetCluster)
+		AdminGroup.PUT("/clusters/:id", cluster.UpdateCluster)
+		AdminGroup.DELETE("/clusters/:id", cluster.DeleteCluster)
+		AdminGroup.POST("/clusters/test-connection", cluster.TestConnection)
+
 		// 用户任务管理
 		AdminGroup.GET("/tasks", admin.GetAdminTasks)
 		AdminGroup.GET("/tasks/:taskId", admin.GetTaskDetail)
@@ -184,5 +194,13 @@ func InitAdminRouter(Router *gin.RouterGroup) {
 		AdminGroup.POST("/instances/set-expiry", admin.SetInstanceExpiry)
 		AdminGroup.POST("/instances/freeze", admin.FreezeInstance)
 		AdminGroup.POST("/instances/unfreeze", admin.UnfreezeInstance)
+
+		// 告警管理
+		AdminGroup.GET("/alerts", alert.GetAlerts)
+		AdminGroup.GET("/alerts/unread-count", alert.GetUnreadCount)
+		AdminGroup.PUT("/alerts/:id/read", alert.MarkAsRead)
+		AdminGroup.PUT("/alerts/read-all", alert.MarkAllAsRead)
+		AdminGroup.PUT("/alerts/:id/resolve", alert.ResolveAlert)
+		AdminGroup.DELETE("/alerts/:id", alert.DeleteAlert)
 	}
 }
